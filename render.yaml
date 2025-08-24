@@ -4,6 +4,7 @@ services:
     name: ccit-invoice-processor
     env: python
     buildCommand: |
+      pip install -r crewai_outlook/requirements.txt
       cd frontend
       pip install -r requirements.txt
     startCommand: |
