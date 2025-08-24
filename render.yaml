@@ -7,10 +7,10 @@ services:
       pip install -r crewai_outlook/requirements.txt
       cd frontend
       pip install -r requirements.txt
-      pip install gunicorn eventlet
+      pip install gunicorn gevent
     startCommand: |
       cd frontend
-      gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:5000 app:app
+      gunicorn --worker-class gevent -w 1 --bind 0.0.0.0:5000 app:app
     envVars:
       - key: FLASK_ENV
         value: production
