@@ -1,0 +1,52 @@
+services:
+  # Frontend Monitoring Dashboard
+  - type: web
+    name: ccit-invoice-processor
+    env: python
+    buildCommand: |
+      cd frontend
+      pip install -r requirements.txt
+    startCommand: |
+      cd frontend
+      python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: OUTLOOK_API_BASE_URL
+        sync: false
+      - key: OUTLOOK_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ASTRA_DB_DATABASE_ID
+        sync: false
+      - key: ASTRA_DB_APPLICATION_TOKEN
+        sync: false
+      - key: ASTRA_DB_KEYSPACE
+        value: invoices
+
+  # Daily Processing Cron Job
+  - type: cron
+    name: ccit-daily-processor
+    env: python
+    schedule: "0 9 * * 1-5"  # 9 AM weekdays
+    buildCommand: |
+      pip install -r crewai_outlook/requirements.txt
+    startCommand: |
+      cd scheduler
+      python daily_processor.py
+    envVars:
+      - key: OUTLOOK_API_BASE_URL
+        sync: false
+      - key: OUTLOOK_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ASTRA_DB_DATABASE_ID
+        sync: false
+      - key: ASTRA_DB_APPLICATION_TOKEN
+        sync: false
+      - key: ASTRA_DB_KEYSPACE
+        value: invoices
