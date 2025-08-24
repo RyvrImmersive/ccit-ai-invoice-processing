@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewAI Invoice Processing Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1E88E5 0%, #2196F3 50%, #03A9F4 100%);
+            color: white;
+            padding: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            filter: brightness(0) invert(1);
+        }
+
+        .header-text {
+            text-align: left;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .header h2 {
+            font-size: 1.4em;
+            margin: 5px 0 10px 0;
+            font-weight: 400;
+            opacity: 0.95;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-idle { background-color: #6c757d; }
+        .status-running { background-color: #28a745; animation: pulse 1.5s infinite; }
+        .status-error { background-color: #dc3545; }
+        .status-completed { background-color: #007bff; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .monitoring-feed {
+            padding: 30px;
+            background: white;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .feed-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .messages-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .message-success { background: #d4edda; border-left: 4px solid #28a745; }
+        .message-warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .message-error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .message-progress { background: #e2e3e5; border-left: 4px solid #6c757d; }
+
+        .message-content {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-text {
+                text-align: center;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .header h2 {
+                font-size: 1.2em;
+            }
+            
+            .logo {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <img src="/static/logo.svg" alt="CCIT.ai Logo" class="logo">
+                <div class="header-text">
+                    <h1>CCIT.ai</h1>
+                    <h2>Agentic Invoice Data Processing</h2>
+                    <p>Real-time monitoring of automated invoice processing workflow</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="control-panel">
+                <div class="status-card">
+                    <h3>System Status</h3>
+                    <p id="status-display">
+                        <span id="status-indicator" class="status-indicator status-idle"></span>
+                        <span id="status-text">Idle</span>
+                    </p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div id="total-processed" class="stat-number">0</div>
+                            <div class="stat-label">Total Processed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="last-run" class="stat-number">-</div>
+                            <div class="stat-label">Last Run</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <h3>Start New Workflow</h3>
+                    <form id="workflow-form">
+                        <div class="form-group">
+                            <label for="sender-email">Sender Email (optional)</label>
+                            <input type="email" id="sender-email" placeholder="e.g., invoices@company.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject-contains">Subject Contains</label>
+                            <input type="text" id="subject-contains" value="invoice" placeholder="e.g., invoice, bill">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="days-back">Days Back</label>
+                            <select id="days-back">
+                                <option value="1">Last 1 day</option>
+                                <option value="3">Last 3 days</option>
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" id="start-btn" class="btn">
+                            🚀 Start Processing
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="monitoring-feed">
+                <div class="feed-header">
+                    <div class="feed-title">📊 Live Monitoring Feed</div>
+                    <button id="clear-messages" class="clear-btn">Clear Messages</button>
+                </div>
+                <div id="messages-container" class="messages-container">
+                    <div class="message message-info">
+                        <div class="message-content">
+                            👋 Welcome to CCIT.ai Agentic Invoice Data Processing
+                            <div class="message-time">Ready to start monitoring</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io();
+        
+        // DOM elements
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        const totalProcessed = document.getElementById('total-processed');
+        const lastRun = document.getElementById('last-run');
+        const messagesContainer = document.getElementById('messages-container');
+        const workflowForm = document.getElementById('workflow-form');
+        const startBtn = document.getElementById('start-btn');
+        const clearBtn = document.getElementById('clear-messages');
+
+        // Socket event handlers
+        socket.on('connect', function() {
+            console.log('Connected to monitoring server');
+        });
+
+        socket.on('status_update', function(status) {
+            updateStatus(status);
+        });
+
+        socket.on('new_message', function(message) {
+            addMessage(message);
+        });
+
+        // Update status display
+        function updateStatus(status) {
+            statusText.textContent = status.current_status;
+            totalProcessed.textContent = status.total_processed;
+            
+            if (status.last_run) {
+                const lastRunDate = new Date(status.last_run);
+                lastRun.textContent = lastRunDate.toLocaleTimeString();
+            }
+            
+            // Update status indicator
+            statusIndicator.className = 'status-indicator';
+            if (status.is_running) {
+                statusIndicator.classList.add('status-running');
+                startBtn.disabled = true;
+                startBtn.textContent = '⏳ Processing...';
+            } else {
+                statusIndicator.classList.add('status-idle');
+                startBtn.disabled = false;
+                startBtn.textContent = '🚀 Start Processing';
+            }
+        }
+
+        // Add message to feed
+        function addMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${message.type}`;
+            
+            const timestamp = new Date(message.timestamp).toLocaleTimeString();
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${message.content}
+                    <div class="message-time">${timestamp}</div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Handle form submission
+        workflowForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                sender_email: document.getElementById('sender-email').value,
+                subject_contains: document.getElementById('subject-contains').value,
+                days_back: parseInt(document.getElementById('days-back').value)
+            };
+            
+            fetch('/api/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to start workflow');
+            });
+        });
+
+        // Clear messages
+        clearBtn.addEventListener('click', function() {
+            messagesContainer.innerHTML = `
+                <div class="message message-info">
+                    <div class="message-content">
+                        📋 Messages cleared
+                        <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Load initial status
+        fetch('/api/status')
+            .then(response => response.json())
+            .then(status => {
+                updateStatus(status);
+                // Load existing messages
+                status.messages.forEach(message => {
+                    addMessage(message);
+                });
+            });
+    </script>
+</body>
+</html>

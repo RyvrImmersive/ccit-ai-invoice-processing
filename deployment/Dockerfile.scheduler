@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements
+COPY crewai_outlook/requirements.txt /app/crewai_outlook/
+
+# Install dependencies
+RUN pip install --no-cache-dir -r crewai_outlook/requirements.txt
+
+# Install cron
+RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
+
+# Copy application code
+COPY . /app/
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Set environment variables
+ENV PYTHONPATH=/app
+
+# Make scripts executable
+RUN chmod +x /app/scheduler/daily_processor.py
+
+# Setup cron job
+RUN echo "0 9 * * 1-5 cd /app/scheduler && python daily_processor.py >> /app/logs/daily_processor.log 2>&1" | crontab -
+
+# Start cron daemon
+CMD ["cron", "-f"]

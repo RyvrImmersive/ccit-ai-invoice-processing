@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Frontend Monitoring Dashboard
+  frontend:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.frontend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+      - OUTLOOK_API_BASE_URL=${OUTLOOK_API_BASE_URL}
+      - OUTLOOK_API_KEY=${OUTLOOK_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ASTRA_DB_DATABASE_ID=${ASTRA_DB_DATABASE_ID}
+      - ASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN}
+      - ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  # Daily Processing Service
+  scheduler:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.scheduler
+    environment:
+      - OUTLOOK_API_BASE_URL=${OUTLOOK_API_BASE_URL}
+      - OUTLOOK_API_KEY=${OUTLOOK_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ASTRA_DB_DATABASE_ID=${ASTRA_DB_DATABASE_ID}
+      - ASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN}
+      - ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE}
+    volumes:
+      - ./logs:/app/logs
+      - ./scheduler/scheduler_config.json:/app/scheduler/scheduler_config.json
+    restart: unless-stopped
+    depends_on:
+      - frontend
+
+volumes:
+  logs:

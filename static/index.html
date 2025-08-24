@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outlook MCP Admin Dashboard</title>
+    <!-- Cache bust: 2025-08-09-11:02 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: block;
+        }
+        .success-animation {
+            animation: bounce 0.5s ease-in-out;
+        }
+        @keyframes bounce {
+            0%, 20%, 60%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            80% { transform: translateY(-5px); }
+        }
+        .file-preview {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .langflow-section {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-envelope-open-text text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Outlook MCP Admin Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="health-status" class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-sm">Service Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Panel: Input Form -->
+            <div class="bg-white rounded-lg card-shadow p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <i class="fas fa-download text-blue-500 text-xl"></i>
+                    <h2 class="text-xl font-semibold text-gray-800">Download Attachment</h2>
+                </div>
+
+                <form id="downloadForm" class="space-y-4">
+                    <!-- Composio Configuration Section -->
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">
+                            <i class="fas fa-key mr-2"></i>Composio MCP Configuration
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-lock mr-1"></i>API Key *
+                                </label>
+                                <input type="password" id="composio_api_key" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="Enter your Composio API key" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-server mr-1"></i>Base URL
+                                </label>
+                                <input type="url" id="composio_base_url" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="https://mcp.composio.dev" value="https://mcp.composio.dev">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-id-badge mr-1"></i>Server ID
+                                </label>
+                                <input type="text" id="composio_server_id" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="76b9c7a4-85bc-4711-a848-f0d56fde2a5a" value="76b9c7a4-85bc-4711-a848-f0d56fde2a5a">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-user mr-1"></i>User ID
+                                </label>
+                                <input type="text" id="composio_user_id" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="userJS1" value="userJS1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download Method Selection -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                            <i class="fas fa-cog mr-2"></i>Download Method
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="method" value="direct" class="mr-2" checked>
+                                    <span class="text-sm">Direct IDs (Recommended)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="method" value="search" class="mr-2">
+                                    <span class="text-sm">Search Parameters</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Direct IDs Section -->
+                    <div id="direct-section" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user mr-1"></i>Sender Email
+                            </label>
+                            <input type="text" id="sender_email_direct" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="from:CustomerService@solarwinds.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-paperclip mr-1"></i>Attachment ID
+                            </label>
+                            <textarea id="attachment_id" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows="3"
+                                    placeholder="Enter attachment ID or dynamic reference like {attachmentList[0][attachmentId]}"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-envelope mr-1"></i>Message ID
+                            </label>
+                            <input type="text" id="message_id" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Enter message ID or {messageId}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-file mr-1"></i>Filename (JSON format supported)
+                            </label>
+                            <textarea id="attachment_name_direct" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows="2"
+                                    placeholder='Enter filename or JSON like {"filename": "Invoice_IE503577_1754045209009.pdf"}'></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Search Section -->
+                    <div id="search-section" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-subject mr-1"></i>Email Subject
+                            </label>
+                            <input type="text" id="email_subject" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Enter email subject...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-file mr-1"></i>Attachment Name
+                            </label>
+                            <input type="text" id="attachment_name_search" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Enter attachment name...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user mr-1"></i>Sender Email (Optional)
+                            </label>
+                            <input type="email" id="sender_email" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Enter sender email...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-calendar mr-1"></i>Days Back
+                            </label>
+                            <input type="number" id="days_back" value="7" min="1" max="365"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <button type="button" id="intelligent-search-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center space-x-2">
+                                <i class="fas fa-brain"></i>
+                                <span>Smart Search</span>
+                            </button>
+                            <button type="button" id="download-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center space-x-2">
+                                <i class="fas fa-download"></i>
+                                <span>Download</span>
+                            </button>
+                        </div>
+                        <!-- Test Button for Debugging -->
+                        <button type="button" id="test-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center justify-center space-x-2 text-sm">
+                            <i class="fas fa-bug"></i>
+                            <span>Test JavaScript (Debug)</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loading State -->
+                <div id="loading" class="loading text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p class="mt-2 text-gray-600">Processing request...</p>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results & Langflow -->
+            <div class="space-y-6">
+                <!-- Results Section -->
+                <div class="bg-white rounded-lg card-shadow p-6">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <i class="fas fa-file-alt text-green-500 text-xl"></i>
+                        <h2 class="text-xl font-semibold text-gray-800">Download Results</h2>
+                    </div>
+                    
+                    <div id="results-container" class="hidden">
+                        <div id="file-info" class="mb-4 p-4 bg-gray-50 rounded-lg">
+                            <h3 class="font-medium text-gray-800 mb-2">File Information</h3>
+                            <div id="file-details" class="text-sm text-gray-600 space-y-1"></div>
+                        </div>
+                        
+                        <div id="file-preview" class="file-preview mb-4">
+                            <div class="text-center text-gray-500">
+                                <i class="fas fa-file-pdf text-4xl mb-2"></i>
+                                <p>File preview will appear here</p>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button id="download-btn" 
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center justify-center space-x-2">
+                                <i class="fas fa-download"></i>
+                                <span>Download File</span>
+                            </button>
+                            <button id="send-to-external-api" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200">
+                                <i class="fas fa-paper-plane mr-2"></i>Send to External API
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="no-results" class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-4"></i>
+                        <p>No file downloaded yet</p>
+                        <p class="text-sm">Use the form to download an attachment</p>
+                    </div>
+                </div>
+
+                <!-- External API Integration Section -->
+                <div class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-6 rounded-lg shadow-lg">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <i class="fas fa-paper-plane text-2xl"></i>
+                        <h3 class="text-xl font-bold">External API Integration</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">API Endpoint URL</label>
+                            <input type="url" id="api_url" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                   placeholder="https://your-system.com/api/process-data"
+                                   value="">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">HTTP Method</label>
+                                <select id="api_method" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">API Key</label>
+                                <input type="password" id="external_api_key" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       placeholder="Optional API key">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Custom Headers (JSON format)</label>
+                            <textarea id="custom_headers" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                      rows="2"
+                                      placeholder='{"Content-Type": "application/json", "X-Custom-Header": "value"}'></textarea>
+                        </div>
+                        <div class="bg-purple-50 p-3 rounded-md">
+                            <div class="flex items-center space-x-2 text-purple-700">
+                                <i class="fas fa-info-circle"></i>
+                                <span class="text-sm">Send extracted PDF data to any external system</span>
+                            </div>
+                            <p class="text-xs text-purple-600 mt-1">Supports Bearer token and x-api-key authentication</p>
+                        </div>
+                        <div id="api-status" class="hidden p-3 rounded-md">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="text-sm">Ready to send extracted data</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status-messages" class="fixed bottom-4 right-4 space-y-2"></div>
+    </div>
+
+    <script src="static/app.js?v=2025081000"></script>
+</body>
+</html>

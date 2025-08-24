@@ -1,0 +1,17 @@
+{
+  "search_criteria": {
+    "sender_email": "",
+    "subject_contains": "invoice",
+    "days_back": 1
+  },
+  "retry_attempts": 3,
+  "retry_delay_minutes": 30,
+  "notification_webhook": null,
+  "max_runtime_minutes": 60,
+  "schedule": {
+    "enabled": true,
+    "time": "09:00",
+    "timezone": "UTC",
+    "weekdays_only": true
+  }
+}
