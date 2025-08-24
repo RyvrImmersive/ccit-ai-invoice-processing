@@ -197,5 +197,5 @@ if __name__ == '__main__':
     monitor.add_message('info', "🚀 CrewAI Invoice Processing Monitor started")
     monitor.add_message('info', "📊 Dashboard ready for monitoring workflow progress")
     
-    # Run the Flask-SocketIO app with Werkzeug compatibility
+    # For development only - production uses Gunicorn
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
