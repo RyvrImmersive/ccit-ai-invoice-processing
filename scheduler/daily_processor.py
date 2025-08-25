@@ -90,7 +90,11 @@ class DailyProcessor:
             
             # Run the CrewAI workflow
             logger.info("🤖 Initializing CrewAI workflow...")
-            result = self.crew.run(inputs=search_criteria)
+            result = self.crew.run(
+                sender_email=search_criteria['sender_email'],
+                subject_contains=search_criteria['subject_contains'],
+                days_back=search_criteria['days_back']
+            )
             
             # Log results
             self.log_results(result, start_time)
