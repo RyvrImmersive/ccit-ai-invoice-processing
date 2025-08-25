@@ -18,10 +18,10 @@ services:
 
   # Daily Processing Cron Job
   - type: cron
-    name: ccit-daily-processor
+    name: ccit-daily-processor-v2
     env: python
     schedule: "0 9 * * 1-5"
     buildCommand: |
-      pip install -r requirements.txt
+      pip install --no-cache-dir -r requirements.txt
     startCommand: |
       python scheduler/standalone_processor.py
