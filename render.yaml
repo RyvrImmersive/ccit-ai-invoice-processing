@@ -35,10 +35,8 @@ services:
     schedule: "0 9 * * 1-5"  # 9 AM weekdays
     buildCommand: |
       pip install -r crewai_outlook/requirements.txt
-      pip install cassandra-driver==3.29.1
     startCommand: |
-      export PYTHONPATH="${PYTHONPATH}:$(pwd)/crewai_outlook"
-      python scheduler/daily_processor.py
+      python scheduler/simple_processor.py
     envVars:
       - key: OUTLOOK_API_BASE_URL
         sync: false
