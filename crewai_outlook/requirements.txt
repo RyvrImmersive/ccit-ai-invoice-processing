@@ -7,3 +7,4 @@ PyPDF2==3.0.1
 pandas==2.2.2
 requests==2.31.0
 astrapy==1.0.0
+cassandra-driver==3.29.1
