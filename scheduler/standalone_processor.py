@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Standalone daily processor that directly calls APIs without CrewAI dependencies
+Production version - no dotenv dependency
 """
 
 import os
