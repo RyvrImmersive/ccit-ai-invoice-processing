@@ -12,21 +12,14 @@ import base64
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-# Try to import dotenv, but don't fail if it's not available
-try:
-    from dotenv import load_dotenv
-    DOTENV_AVAILABLE = True
-except ImportError:
-    DOTENV_AVAILABLE = False
 
 # Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# Load environment variables from .env file if dotenv is available
-if DOTENV_AVAILABLE:
-    load_dotenv(os.path.join(project_root, '.env'))
+# Note: Environment variables are set directly in Render dashboard
+# No need to load from .env file in production
 
 # Setup logging
 logging.basicConfig(
