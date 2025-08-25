@@ -15,39 +15,13 @@ services:
         value: production
       - key: FLASK_SECRET_KEY
         generateValue: true
-      - key: OUTLOOK_API_BASE_URL
-        sync: false
-      - key: OUTLOOK_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: ASTRA_DB_DATABASE_ID
-        sync: false
-      - key: ASTRA_DB_APPLICATION_TOKEN
-        sync: false
-      - key: ASTRA_DB_KEYSPACE
-        value: invoices
 
   # Daily Processing Cron Job
   - type: cron
     name: ccit-daily-processor
     env: python
-    schedule: "0 9 * * 1-5"  # 9 AM weekdays
-    workingDirectory: /opt/render/project/src
+    schedule: "0 9 * * 1-5"
     buildCommand: |
       pip install -r requirements.txt
     startCommand: |
       python scheduler/standalone_processor.py
-    envVars:
-      - key: OUTLOOK_API_BASE_URL
-        sync: false
-      - key: OUTLOOK_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: ASTRA_DB_DATABASE_ID
-        sync: false
-      - key: ASTRA_DB_APPLICATION_TOKEN
-        sync: false
-      - key: ASTRA_DB_KEYSPACE
-        value: invoices
