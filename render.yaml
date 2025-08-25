@@ -33,8 +33,9 @@ services:
     name: ccit-daily-processor
     env: python
     schedule: "0 9 * * 1-5"  # 9 AM weekdays
+    workingDirectory: /opt/render/project/src
     buildCommand: |
-      pip install requests
+      pip install -r requirements.txt
     startCommand: |
       python scheduler/standalone_processor.py
     envVars:
