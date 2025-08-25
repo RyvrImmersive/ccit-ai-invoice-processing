@@ -22,6 +22,7 @@ services:
     env: python
     schedule: "0 9 * * 1-5"
     buildCommand: |
+      ls -R | head -20
       pip install --no-cache-dir -r requirements.txt
     startCommand: |
       python scheduler/standalone_processor.py
