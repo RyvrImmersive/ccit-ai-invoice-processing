@@ -12,15 +12,21 @@ import base64
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from dotenv import load_dotenv
+# Try to import dotenv, but don't fail if it's not available
+try:
+    from dotenv import load_dotenv
+    DOTENV_AVAILABLE = True
+except ImportError:
+    DOTENV_AVAILABLE = False
 
 # Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# Load environment variables from .env file
-load_dotenv(os.path.join(project_root, '.env'))
+# Load environment variables from .env file if dotenv is available
+if DOTENV_AVAILABLE:
+    load_dotenv(os.path.join(project_root, '.env'))
 
 # Setup logging
 logging.basicConfig(
