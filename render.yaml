@@ -34,7 +34,7 @@ services:
     env: python
     schedule: "0 9 * * 1-5"  # 9 AM weekdays
     buildCommand: |
-      pip install -r crewai_outlook/requirements.txt
+      pip install requests
     startCommand: |
       python scheduler/standalone_processor.py
     envVars:
