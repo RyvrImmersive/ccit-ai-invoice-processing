@@ -37,10 +37,15 @@ def run_crewai_processing():
         # Run the main crew script
         cmd = [
             sys.executable, 
-            'main.py',
-            '--sender-email', '',
-            '--subject-contains', 'invoice',
-            '--days-back', '1'
+            '-c',
+            '''
+import sys
+sys.path.insert(0, ".")
+from crew import OutlookProcessingCrew
+crew = OutlookProcessingCrew()
+result = crew.run(sender_email="", subject_contains="invoice", days_back=1)
+print("SUCCESS:", result)
+'''
         ]
         
         logger.info(f"🤖 Executing: {' '.join(cmd)}")
