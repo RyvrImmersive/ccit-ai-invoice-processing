@@ -51,18 +51,18 @@ class OutlookProcessingCrew:
             }
         )
     
-    def run(self, sender_email: str, subject_contains: str = "", days_back: int = 30):
+    def run(self, sender_email: str, subject_contains: str = "", days_back: int = 1):
         """Execute the complete Outlook attachment processing workflow."""
-        inputs = {
-            "sender_email": sender_email,
-            "subject_contains": subject_contains,
-            "days_back": days_back
+        inputs={
+            'sender_email': sender_email,
+            'subject_contains': subject_contains,
+            'days_back': days_back
         }
         
         print(f"🚀 Starting Outlook attachment processing workflow...")
         print(f"📧 Sender: {sender_email}")
         print(f"📋 Subject filter: {subject_contains or 'None'}")
-        print(f"📅 Days back: {days_back}")
+        print(f"📅 Days back: {inputs['days_back']}")
         print("-" * 50)
         
         result = self.crew.kickoff(inputs=inputs)
@@ -73,15 +73,15 @@ def main():
     # Example usage - you can modify these parameters
     sender_email = input("Enter sender email address: ").strip()
     subject_contains = input("Enter subject filter (optional): ").strip()
-    days_back = input("Enter days back to search (default 30): ").strip()
+    days_back = input("Enter days back to search (default 1): ").strip()
     
     if not days_back:
-        days_back = 30
+        days_back = 1
     else:
         try:
             days_back = int(days_back)
         except ValueError:
-            days_back = 30
+            days_back = 1
     
     # Initialize and run the crew
     crew = OutlookProcessingCrew()

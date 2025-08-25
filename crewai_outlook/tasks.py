@@ -15,7 +15,7 @@ search_task = Task(
     Requirements:
     - Search for emails from sender: {sender_email}
     - Look for emails containing subject: {subject_contains} (if provided)
-    - Search within the last {days_back} days
+    - Search within the last {days_back} days (default: 1 day for fresh daily processing)
     - Focus only on emails that have attachments
     - Extract and return messageId, attachmentId, attachmentName for each attachment found
     - Provide comprehensive metadata including file sizes, content types, and email details

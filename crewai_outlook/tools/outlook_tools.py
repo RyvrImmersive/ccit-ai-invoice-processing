@@ -11,7 +11,7 @@ class OutlookSearchTool(BaseTool):
     name: str = "outlook_search"
     description: str = "Search Outlook emails from a specific sender and extract messageId, attachmentId, and attachmentName"
     
-    def _run(self, sender_email: str, subject_contains: str = "", days_back: int = 30) -> str:
+    def _run(self, sender_email: str, subject_contains: str = "", days_back: int = 1) -> str:
         """Search Outlook emails and return message and attachment information."""
         try:
             api_url = f"{os.getenv('OUTLOOK_API_BASE_URL')}/search"
