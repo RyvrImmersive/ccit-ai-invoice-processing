@@ -36,7 +36,7 @@ services:
     buildCommand: |
       pip install -r crewai_outlook/requirements.txt
     startCommand: |
-      python scheduler/simple_processor.py
+      python scheduler/standalone_processor.py
     envVars:
       - key: OUTLOOK_API_BASE_URL
         sync: false
