@@ -248,6 +248,7 @@ class StandaloneProcessor:
 
 def main():
     """Main entry point"""
+    exit_code = 1  # Default to error state
     try:
         logger.info("=" * 60)
         logger.info("🚀 Starting invoice processing job")
@@ -260,7 +261,8 @@ def main():
         except ValueError as e:
             logger.error(f"❌ Initialization failed: {e}")
             logger.info("Please set the required environment variables and try again.")
-            return 1
+            exit_code = 1
+            return exit_code
             
         # Run the processing
         try:
