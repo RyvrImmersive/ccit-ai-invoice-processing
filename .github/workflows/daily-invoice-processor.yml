@@ -23,6 +23,23 @@ jobs:
       run: |
         pip install requests python-dotenv
         
+    - name: Debug environment variables
+      env:
+        OUTLOOK_API_BASE_URL: ${{ secrets.OUTLOOK_API_BASE_URL }}
+        OUTLOOK_API_KEY: ${{ secrets.OUTLOOK_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ASTRA_DB_DATABASE_ID: ${{ secrets.ASTRA_DB_DATABASE_ID }}
+        ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+        ASTRA_DB_KEYSPACE: invoices
+      run: |
+        echo "Checking environment variables..."
+        echo "OUTLOOK_API_BASE_URL: ${OUTLOOK_API_BASE_URL:+SET}"
+        echo "OUTLOOK_API_KEY: ${OUTLOOK_API_KEY:+SET}"
+        echo "OPENAI_API_KEY: ${OPENAI_API_KEY:+SET}"
+        echo "ASTRA_DB_DATABASE_ID: ${ASTRA_DB_DATABASE_ID:+SET}"
+        echo "ASTRA_DB_APPLICATION_TOKEN: ${ASTRA_DB_APPLICATION_TOKEN:+SET}"
+        echo "ASTRA_DB_KEYSPACE: $ASTRA_DB_KEYSPACE"
+        
     - name: Run invoice processor
       env:
         OUTLOOK_API_BASE_URL: ${{ secrets.OUTLOOK_API_BASE_URL }}
